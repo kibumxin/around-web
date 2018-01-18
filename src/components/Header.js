@@ -23,7 +23,6 @@ export class Header extends React.Component {
                             <Icon type="logout" />{' '}Logout
                         </a> : null
                 }
-
             </header>
         );
     }
