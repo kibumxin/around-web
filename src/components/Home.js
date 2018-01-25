@@ -1,10 +1,10 @@
 import React from 'react';
 import $ from 'jquery';
 import { Tabs, Spin} from 'antd';
-import {GEO_OPTIONS} from '../constants.js';
 import { Gallery } from './Gallery';
-import {API_ROOT, POS_KEY, AUTH_PREFIX, TOKEN_KEY} from '../constants';
+import {API_ROOT, POS_KEY, AUTH_PREFIX, TOKEN_KEY,GEO_OPTIONS} from '../constants';
 import {CreatePostButton} from './CreatePostButton';
+import {WrappedAroundMap} from './AroundMap';
 
 const TabPane = Tabs.TabPane;
 //const operations = <Button>Extra Action</Button>;
@@ -48,14 +48,15 @@ export class Home extends React.Component {
 
     }
 
-    loadNearbyPosts = () => {
-        const {lat, lon} = JSON.parse(localStorage.getItem(POS_KEY));
+    loadNearbyPosts = (location, radius) => {
+        const {lat, lon} = location ? location : JSON.parse(localStorage.getItem(POS_KEY));
+        const range = radius ? radius : 1500;
         //const lat = 37.7915953;
         //const lon = -122.3937977;
         console.log(`${localStorage.getItem(TOKEN_KEY)}`);
         this.setState({loadingPosts: true, error: ''});
         $.ajax({
-            url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=20`,
+            url: `${API_ROOT}/search?lat=${lat}&lon=${lon}&range=${range}`,
             method: 'GET',
             headers: {
                 Authorization: `${AUTH_PREFIX} ${localStorage.getItem(TOKEN_KEY)}`
@@ -65,9 +66,10 @@ export class Home extends React.Component {
             console.log(response);
         }, (error) => {
             this.setState({loadingPosts: false, error: error.responseText});
-            console.log(error);
+            //console.log(error);
         }).catch((error) => {
-            console.log(error);
+            //console.log(error);
+            this.setState({error: error});
         });
     }
 
@@ -107,7 +109,17 @@ export class Home extends React.Component {
                 <TabPane tab="Posts" key="1">
                     {this.getGalleryPanelContent()}
                 </TabPane>
-                <TabPane tab="Map" key="2">Content of tab 2</TabPane>
+                <TabPane tab="Map" key="2">
+                    <WrappedAroundMap
+                        googleMapURL="https://maps.googleapis.com/maps/api/js?key=AIzaSyC4R6AN7SmujjPUIGKdyao2Kqitzr1kiRg&v=3.exp&libraries=geometry,drawing,places"
+                        loadingElement={<div style={{ height: `100%` }} />}
+                        containerElement={<div style={{ height: `600px` }} />}
+                        mapElement={<div style={{ height: `100%` }} />}
+                        post = {this.state.posts}
+                        loadNearbyPosts={this.loadNearbyPosts}
+
+                    />
+                </TabPane>
             </Tabs>
         );
     }
